@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Video Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="./output.css" rel="stylesheet">
+    <style>
+        .video-thumbnail:hover {
+            opacity: 0.8;
+        }
+
+        .preview-thumbnail {
+            position: absolute;
+            bottom: 60px;
+            left: 10px;
+            display: none;
+        }
+
+        .progress-bar:hover .preview-thumbnail {
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+    <div class="w-11/12 md:w-3/4 lg:w-1/2">
+        <div class="relative">
+            <!-- Video Thumbnail -->
+            <div id="thumbnail-container" class="video-thumbnail cursor-pointer">
+                <img id="video-thumbnail" 
+                     src="F:/sadeepa 2/NEW YT/SL SADEEPA TEC/TUBNAILS/uploded/CHAT GPT 02.png" 
+                     alt="Video Thumbnail" class="w-full h-auto rounded-lg">
+                <button id="play-button" class="absolute inset-0 flex items-center justify-center">
+                    <span class="bg-black bg-opacity-50 text-white text-xl p-2 rounded-full">▶</span>
+                </button>
+            </div>
+
+            <!-- Video Player -->
+            <div id="video-container" class="hidden">
+                <video id="video-player" class="w-full h-auto rounded-lg">
+                    <source src="F:/sadeepa 2/NEW YT/SL SADEEPA TEC/videos/uploded/chat gpt.wmv" type="video/mp4">
+                    <track src="subtitles.vtt" kind="subtitles" srclang="en" label="English">
+                    Your browser does not support the video tag.
+                </video>
+
+                <!-- Controls -->
+                <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 p-3 flex flex-wrap items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <button id="play-pause" class="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">⏯</button>
+                        <input id="volume-slider" type="range" min="0" max="1" step="0.1" value="0.5"
+                            class="w-20 h-1 bg-gray-300 rounded-lg appearance-none">
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <select id="speed-control" class="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">
+                            <option value="0.5">0.5x</option>
+                            <option value="1" selected>1x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2x</option>
+                        </select>
+                        <select id="quality-control" class="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">
+                            <option value="360p">360p</option>
+                            <option value="720p" selected>720p</option>
+                            <option value="1080p">1080p</option>
+                        </select>
+                        <button id="subtitle-toggle" class="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">
+                            Subtitles
+                        </button>
+                        <button id="pip-toggle" class="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">PiP</button>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-bar relative bg-gray-700 h-2 w-full cursor-pointer">
+                    <div id="progress" class="bg-green-500 h-2"></div>
+                    <img id="preview-thumbnail" src="https://via.placeholder.com/200x100.png" alt="Preview"
+                        class="preview-thumbnail w-32 h-auto">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const thumbnailContainer = document.getElementById("thumbnail-container");
+        const playButton = document.getElementById("play-button");
+        const videoContainer = document.getElementById("video-container");
+        const videoPlayer = document.getElementById("video-player");
+        const playPauseButton = document.getElementById("play-pause");
+        const volumeSlider = document.getElementById("volume-slider");
+        const speedControl = document.getElementById("speed-control");
+        const qualityControl = document.getElementById("quality-control");
+        const subtitleToggle = document.getElementById("subtitle-toggle");
+        const pipToggle = document.getElementById("pip-toggle");
+        const progressBar = document.querySelector(".progress-bar");
+        const progress = document.getElementById("progress");
+        const previewThumbnail = document.getElementById("preview-thumbnail");
+
+        let subtitlesEnabled = true;
+
+        thumbnailContainer.addEventListener("click", () => {
+            thumbnailContainer.classList.add("hidden");
+            videoContainer.classList.remove("hidden");
+            videoPlayer.play();
+        });
+
+        playPauseButton.addEventListener("click", () => {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+            } else {
+                videoPlayer.pause();
+            }
+        });
+
+        videoPlayer.addEventListener("timeupdate", () => {
+            const percent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+            progress.style.width = percent + "%";
+        });
+
+        progressBar.addEventListener("mousemove", (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            previewThumbnail.style.left = `${e.clientX - rect.left}px`;
+            previewThumbnail.style.display = "block";
+        });
+
+        volumeSlider.addEventListener("input", (e) => {
+            videoPlayer.volume = e.target.value;
+        });
+
+        speedControl.addEventListener("change", (e) => {
+            videoPlayer.playbackRate = e.target.value;
+        });
+
+        subtitleToggle.addEventListener("click", () => {
+            subtitlesEnabled = !subtitlesEnabled;
+            videoPlayer.textTracks[0].mode = subtitlesEnabled ? "showing" : "hidden";
+        });
+
+        pipToggle.addEventListener("click", async () => {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else {
+                await videoPlayer.requestPictureInPicture();
+            }
+        });
+
+        qualityControl.addEventListener("change", (e) => {
+            alert(`Switched to ${e.target.value}. Placeholder for AI quality improvement.`);
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowUp") videoPlayer.volume = Math.min(videoPlayer.volume + 0.1, 1);
+            if (e.key === "ArrowDown") videoPlayer.volume = Math.max(videoPlayer.volume - 0.1, 0);
+        });
+    </script>
+</body>
+
+</html>

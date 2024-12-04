@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Video Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 min-h-screen flex items-center justify-center p-4">
+    <div class="video-container w-full max-w-4xl bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+        <div class="relative group">
+            <video 
+                id="videoPlayer" 
+                class="w-full"
+                poster="F:\sadeepa 2\NEW YT\SL SADEEPA TEC\TUBNAILS\uploded\CHAT GPT 02.png"
+            >
+                <source src="F:\sadeepa 2\NEW YT\SL SADEEPA TEC\videos\uploded\chat gpt.wmv" type="video/mp4"><!--https://example.com/video.mp4-->
+                Your browser does not support the video tag.
+            </video>
+
+            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 flex items-center justify-center transition-all duration-300">
+                <button id="playPauseBtn" class="text-white opacity-0 group-hover:opacity-100 bg-blue-600 hover:bg-blue-700 p-4 rounded-full transition-all">
+                    <i class="ri-play-fill text-3xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="controls bg-gray-700 p-4 text-white">
+            <div class="progress-container h-2 bg-gray-600 rounded-full cursor-pointer mb-4">
+                <div id="progressBar" class="h-full bg-blue-500 rounded-full w-0"></div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button id="playPauseMainBtn" class="hover:text-blue-400 transition-colors">
+                    <i class="ri-play-fill text-2xl"></i>
+                </button>
+
+                <button id="muteBtn" class="hover:text-blue-400 transition-colors">
+                    <i class="ri-volume-up-line text-2xl"></i>
+                </button>
+
+                <input 
+                    type="range" 
+                    id="volumeSlider" 
+                    min="0" 
+                    max="1" 
+                    step="0.1" 
+                    value="1" 
+                    class="w-24 h-1 bg-gray-500 rounded-full appearance-none"
+                >
+
+                <div id="timeDisplay" class="text-sm">
+                    <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+                </div>
+
+                <div class="relative group">
+                    <button id="qualityBtn" class="flex items-center hover:text-blue-400 transition-colors">
+                        <i class="ri-settings-line mr-1"></i> Quality
+                    </button>
+                    <div id="qualityDropdown" class="absolute bottom-full left-0 hidden group-hover:block bg-gray-800 rounded-lg shadow-lg p-2 z-50">
+                        <button data-quality="360p" class="quality-option block w-full text-left hover:bg-gray-700 px-3 py-2 rounded">360p</button>
+                        <button data-quality="480p" class="quality-option block w-full text-left hover:bg-gray-700 px-3 py-2 rounded">480p</button>
+                        <button data-quality="720p" class="quality-option block w-full text-left hover:bg-gray-700 px-3 py-2 rounded">720p</button>
+                        <button data-quality="1080p" class="quality-option block w-full text-left hover:bg-gray-700 px-3 py-2 rounded">1080p</button>
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <button id="speedBtn" class="hover:text-blue-400 transition-colors">
+                        1x Speed
+                    </button>
+                    <div id="speedDropdown" class="absolute bottom-full left-0 hidden group-hover:block bg-gray-800 rounded-lg shadow-lg p-2 z-50">
+                        <button data-speed="0.5" class="speed-option block w-full text-left hover:bg-gray-700 px-3 py-2 rounded">0.5x</button>
+                        <button data-speed="1" class="speed-option block w-full text-left hover:bg-gray-700 px-3 py-2 rounded">1x</button>
+                        <button data-speed="1.5" class="speed-option block w-full text-left hover:bg-gray-700 px-3 py-2 rounded">1.5x</button>
+                        <button data-speed="2" class="speed-option block w-full text-left hover:bg-gray-700 px-3 py-2 rounded">2x</button>
+                    </div>
+                </div>
+
+                <button id="pipBtn" class="hover:text-blue-400 transition-colors">
+                    <i class="ri-picture-in-picture-line text-2xl"></i>
+                </button>
+
+                <button id="fullscreenBtn" class="hover:text-blue-400 transition-colors">
+                    <i class="ri-fullscreen-line text-2xl"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('videoPlayer');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const playPauseMainBtn = document.getElementById('playPauseMainBtn');
+            const muteBtn = document.getElementById('muteBtn');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const progressContainer = document.querySelector('.progress-container');
+            const progressBar = document.getElementById('progressBar');
+            const currentTimeEl = document.getElementById('currentTime');
+            const totalTimeEl = document.getElementById('totalTime');
+            const qualityDropdown = document.getElementById('qualityDropdown');
+            const speedDropdown = document.getElementById('speedDropdown');
+            const speedBtn = document.getElementById('speedBtn');
+            const pipBtn = document.getElementById('pipBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+            // Video Sources (update with your actual video URLs)
+            const videoSources = {
+                '360p': 'https://example.com/video-360p.mp4',
+                '480p': 'https://example.com/video-480p.mp4',
+                '720p': 'https://example.com/video-720p.mp4',
+                '1080p': 'https://example.com/video-1080p.mp4'
+            };
+
+            // Play/Pause Toggle
+            function togglePlayPause() {
+                if (video.paused) {
+                    video.play();
+                    playPauseBtn.innerHTML = '<i class="ri-pause-fill text-3xl"></i>';
+                    playPauseMainBtn.innerHTML = '<i class="ri-pause-fill text-2xl"></i>';
+                } else {
+                    video.pause();
+                    playPauseBtn.innerHTML = '<i class="ri-play-fill text-3xl"></i>';
+                    playPauseMainBtn.innerHTML = '<i class="ri-play-fill text-2xl"></i>';
+                }
+            }
+
+            // Event Listeners
+            playPauseBtn.addEventListener('click', togglePlayPause);
+            playPauseMainBtn.addEventListener('click', togglePlayPause);
+
+            // Mute Toggle
+            muteBtn.addEventListener('click', () => {
+                video.muted = !video.muted;
+                muteBtn.innerHTML = video.muted 
+                    ? '<i class="ri-volume-mute-line text-2xl"></i>' 
+                    : '<i class="ri-volume-up-line text-2xl"></i>';
+            });
+
+            // Volume Slider
+            volumeSlider.addEventListener('input', (e) => {
+                video.volume = e.target.value;
+                muteBtn.innerHTML = video.volume > 0 
+                    ? '<i class="ri-volume-up-line text-2xl"></i>' 
+                    : '<i class="ri-volume-mute-line text-2xl"></i>';
+            });
+
+            // Progress Bar
+            video.addEventListener('timeupdate', () => {
+                const percentage = (video.currentTime / video.duration) * 100;
+                progressBar.style.width = `${percentage}%`;
+
+                // Update time display
+                currentTimeEl.textContent = formatTime(video.currentTime);
+                totalTimeEl.textContent = formatTime(video.duration);
+            });
+
+            // Seek on Progress Bar Click
+            progressContainer.addEventListener('click', (e) => {
+                const percent = e.offsetX / progressContainer.offsetWidth;
+                video.currentTime = percent * video.duration;
+            });
+
+            // Quality Selection
+            qualityDropdown.addEventListener('click', (e) => {
+                const quality = e.target.dataset.quality;
+                if (quality && videoSources[quality]) {
+                    const currentTime = video.currentTime;
+                    video.src = videoSources[quality];
+                    video.currentTime = currentTime;
+                    video.play();
+                }
+            });
+
+            // Playback Speed
+            speedDropdown.addEventListener('click', (e) => {
+                const speed = parseFloat(e.target.dataset.speed);
+                if (speed) {
+                    video.playbackRate = speed;
+                    speedBtn.textContent = `${speed}x Speed`;
+                }
+            });
+
+            // Picture in Picture
+            pipBtn.addEventListener('click', () => {
+                if (document.pictureInPictureElement) {
+                    document.exitPictureInPicture();
+                } else if (document.pictureInPictureEnabled) {
+                    video.requestPictureInPicture();
+                }
+            });
+
+            // Fullscreen
+            fullscreenBtn.addEventListener('click', () => {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    document.querySelector('.video-container').requestFullscreen();
+                }
+            });
+
+            // Keyboard Shortcuts
+            document.addEventListener('keydown', (e) => {
+                switch(e.key) {
+                    case ' ':
+                        e.preventDefault();
+                        togglePlayPause();
+                        break;
+                    case 'ArrowUp':
+                        volumeSlider.value = Math.min(1, parseFloat(volumeSlider.value) + 0.1);
+                        video.volume = volumeSlider.value;
+                        break;
+                    case 'ArrowDown':
+                        volumeSlider.value = Math.max(0, parseFloat(volumeSlider.value) - 0.1);
+                        video.volume = volumeSlider.value;
+                        break;
+                }
+            });
+
+            // Time Formatting Utility
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = Math.floor(seconds % 60);
+                return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+            }
+        });
+    </script>
+</body>
+</html>
